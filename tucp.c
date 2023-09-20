@@ -5,10 +5,12 @@
 #include <string.h>
 #include <unistd.h>
 
+char *fileCombine(const char *a, char *b);
+
 int main (int argc, char *argv[]){
 
   if (argc < 3){ //dealing with only 1 argument
-		printf("%s", "tucp: incorrect arguments. Exiting program.\n");
+		printf("%s", "tucp: too few arguments. Exiting program.\n");
 		return 1;
 	}
 
@@ -21,4 +23,97 @@ int main (int argc, char *argv[]){
     return 1;
   }
 
+  //Now dealing with 2 args
+  if (argc == 3){
+    
+    stat(argv[2], &buf);
+
+    //if second arg is directory name, copy it to directory
+    if(S_ISDIR(buf.st_mode)){
+
+      puts("yup that's a directory");
+
+      char* newName = fileCombine(argv[2], argv[1]);
+
+      FILE *orig, *copy;
+
+      orig = fopen(argv[1], "r");
+      copy = fopen(newName, "w");
+
+      //error checking on open
+      if (orig == NULL || copy == NULL){
+        printf("%s", "tucp: error opening specified files. Exiting program.");
+        return 1;
+      }
+
+      char buffer[BUFSIZ];
+      int b;
+
+      while ((b = fread(buffer, 1, sizeof(buffer), orig))) {
+        fwrite(buffer, 1, b, copy);
+      }
+
+      fclose(orig);
+      fclose(copy);
+
+			free(newName); //freeing the memeory
+
+    } else {
+
+      FILE *orig, *copy;
+
+      orig = fopen(argv[1], "r");
+      copy = fopen(argv[2], "w");
+
+      //error checking on open
+      if (orig == NULL || copy == NULL){
+        printf("%s", "tucp: error opening specified files. Exiting program.");
+        return 1;
+      }
+
+      char buffer[BUFSIZ];
+      int b;
+
+      while ((b = fread(buffer, 1, sizeof(buffer), orig))) {
+        fwrite(buffer, 1, b, copy);
+      }
+
+      fclose(orig);
+      fclose(copy);
+
+    }
+
+
+  } else {
+
+    //Now more than 2 args
+
+    //If there is more than 2 args, last arg must be a directory. Checking here if not
+
+    stat(argv[(argc - 1)], &buf);
+
+    //if last arg is not a directory name, print out error
+    if(!S_ISDIR(buf.st_mode)){
+    
+      printf("%s", "tucp: incorrect arguments. Final argument must be direcory. Exiting program.");
+      return 1;
+
+    }
+
+  }
+
+  
+}
+
+//made this for part A might as well use it
+char *fileCombine(const char *a, char *b) {
+	char *ret = malloc(strlen(a) + strlen(b) + 2);
+	int x = 0;
+	int y = 0;
+
+	for (x = 0; (ret[y] = a[x]) != '\0'; ++x, ++y);//copying first string to array
+	ret[y] = '/'; //adding a /
+	y++;
+	for (x = 0; (ret[y] = b[x]) != '\0'; ++x, ++y); //copying second string to array
+	return ret; //returning
 }
