@@ -93,10 +93,43 @@ int main (int argc, char *argv[]){
     stat(argv[(argc - 1)], &buf);
 
     //if last arg is not a directory name, print out error
-    if(!S_ISDIR(buf.st_mode)){
-    
+    if(!S_ISDIR(buf.st_mode)){   
       printf("%s", "tucp: incorrect arguments. Final argument must be direcory. Exiting program.");
       return 1;
+    } else {
+
+      //at this point we can really just do what we did before for 2 args with a directory using a for loop
+
+      for (size_t i = 1; i < argc - 1; i++){
+
+        char* newName = fileCombine(argv[(argc - 1)], argv[i]);
+
+        FILE *orig, *copy;
+
+        orig = fopen(argv[i], "r");
+        copy = fopen(newName, "w");
+
+      //error checking on open
+        if (orig == NULL || copy == NULL){
+          printf("%s", "tucp: error opening specified files. Exiting program.");
+          return 1;
+        }
+
+        char buffer[BUFSIZ];
+        int b;
+
+        while ((b = fread(buffer, 1, sizeof(buffer), orig))) {
+          fwrite(buffer, 1, b, copy);
+        }
+
+        fclose(orig);
+        fclose(copy);
+
+			  free(newName); //freeing the memeory
+
+
+
+      }
 
     }
 
